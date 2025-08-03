@@ -1,4 +1,4 @@
-name: Build and Publish Docker Images
+name: Build and Publish Docker Image
 
 on:
   push:
@@ -9,8 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME_IRCD: ${{ github.repository }}/ircd
-  IMAGE_NAME_WEBSERVER: ${{ github.repository }}/webserver
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
@@ -33,11 +32,11 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Extract metadata for IRCD
-      id: meta-ircd
+    - name: Extract metadata
+      id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_IRCD }}
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -46,62 +45,29 @@ jobs:
           type=semver,pattern={{major}}
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Extract metadata for Webserver
-      id: meta-webserver
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_WEBSERVER }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=semver,pattern={{major}}
-          type=raw,value=latest,enable={{is_default_branch}}
-
-    - name: Build and push IRCD Docker image
+    - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./Dockerfile.ircd
+        file: ./Dockerfile
         push: true
-        tags: ${{ steps.meta-ircd.outputs.tags }}
-        labels: ${{ steps.meta-ircd.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        platforms: linux/amd64,linux/arm64
-
-    - name: Build and push Webserver Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./Dockerfile.webserver
-        push: true
-        tags: ${{ steps.meta-webserver.outputs.tags }}
-        labels: ${{ steps.meta-webserver.outputs.labels }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
         platforms: linux/amd64,linux/arm64
 
     - name: Generate summary
       run: |
-        echo "## 🐳 Docker Images Published" >> $GITHUB_STEP_SUMMARY
+        echo "## 🐳 Docker Image Published" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### IRCD Image" >> $GITHUB_STEP_SUMMARY
+        echo "### Image Tags" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.meta-ircd.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Webserver Image" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.meta-webserver.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Usage" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "# Pull and run IRCD" >> $GITHUB_STEP_SUMMARY
-        echo "docker run -p 8081:8081 ghcr.io/${{ github.repository }}/ircd:latest" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "# Pull and run Webserver" >> $GITHUB_STEP_SUMMARY
-        echo "docker run -p 8080:8080 ghcr.io/${{ github.repository }}/webserver:latest" >> $GITHUB_STEP_SUMMARY
+        echo "# Pull and run WIRC server" >> $GITHUB_STEP_SUMMARY
+        echo "docker run -p 8080:8080 ghcr.io/${{ github.repository }}:latest" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
