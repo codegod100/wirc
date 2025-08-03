@@ -107,6 +107,20 @@
                             </button>
                         </div>
                     </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-lg font-medium mb-2 text-blue-300">
+                            Channels
+                        </h3>
+                        <div
+                            id="channels-list"
+                            class="bg-slate-900 p-3 rounded border border-slate-600 max-h-32 overflow-y-auto"
+                        >
+                            <div class="text-gray-400 text-sm italic">
+                                No channels joined
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Chat Area -->
@@ -174,6 +188,8 @@
         <script>
             const go = new Go();
             let currentChannel = "";
+            let joinedChannels = new Set();
+            let channelHistory = {};
 
             // Store WebSocket globally so we can access it from UI buttons
             window.ircWebSocket = null;
@@ -195,6 +211,62 @@
                     top: chatArea.scrollHeight,
                     behavior: 'smooth'
                 });
+            }
+
+            function updateChannelsList() {
+                const channelsList = document.getElementById("channels-list");
+                channelsList.innerHTML = "";
+
+                if (joinedChannels.size === 0) {
+                    channelsList.innerHTML = '<div class="text-gray-400 text-sm italic">No channels joined</div>';
+                    return;
+                }
+
+                joinedChannels.forEach(channel => {
+                    const channelDiv = document.createElement("div");
+                    channelDiv.className = channel === currentChannel 
+                        ? "text-blue-300 text-sm py-1 px-2 bg-slate-700 rounded cursor-pointer font-semibold"
+                        : "text-gray-200 text-sm py-1 px-2 hover:bg-slate-700 rounded cursor-pointer";
+                    channelDiv.textContent = channel;
+                    channelDiv.onclick = () => switchToChannel(channel);
+                    channelsList.appendChild(channelDiv);
+                });
+            }
+
+            function switchToChannel(channel) {
+                if (channel === currentChannel) return;
+                
+                currentChannel = channel;
+                updateChannelsList();
+                updateCurrentChannelDisplay();
+                displayChannelHistory(channel);
+                requestUsersList();
+            }
+
+            function displayChannelHistory(channel) {
+                const chatArea = document.getElementById("chat-area");
+                chatArea.innerHTML = "";
+
+                if (channelHistory[channel]) {
+                    channelHistory[channel].forEach(msg => {
+                        displayMessageInChat(msg.channel, msg.user, msg.text, msg.type);
+                    });
+                } else {
+                    chatArea.innerHTML = '<div class="text-gray-400 text-center italic">No messages in ' + channel + '</div>';
+                }
+                scrollToBottom();
+            }
+
+            function addToChannelHistory(channel, user, text, type = 'message') {
+                if (!channelHistory[channel]) {
+                    channelHistory[channel] = [];
+                }
+                channelHistory[channel].push({ channel, user, text, type });
+                
+                // Keep only last 100 messages per channel
+                if (channelHistory[channel].length > 100) {
+                    channelHistory[channel] = channelHistory[channel].slice(-100);
+                }
             }
 
             function connectWebSocket() {
@@ -246,18 +318,24 @@
                                 requestUsersList();
                             }
                         } else if (msg.type === "channel_joined") {
-                            // When we join a new channel, set it as current
+                            // When we join a new channel, add it to our list and set as current
+                            joinedChannels.add(msg.channel);
                             currentChannel = msg.channel;
                             console.log(
                                 "Joined channel, set as current:",
                                 currentChannel,
                             );
+                            updateChannelsList();
                             updateCurrentChannelDisplay();
+                            displayChannelHistory(currentChannel);
                             // Request users list for newly joined channel
                             requestUsersList();
                         } else if (msg.type === "message") {
                             console.log("Received chat message:", msg);
-                            displayMessage(msg.channel, msg.user, msg.text);
+                            addToChannelHistory(msg.channel, msg.user, msg.text);
+                            if (msg.channel === currentChannel) {
+                                displayMessage(msg.channel, msg.user, msg.text);
+                            }
                         } else if (msg.type === "connected") {
                             displaySystemMessage("Connected to IRC server");
                         } else if (msg.type === "disconnected") {
@@ -333,30 +411,44 @@
 
             function displayMessage(channel, user, text) {
                 console.log("Displaying message:", channel, user, text);
+                displayMessageInChat(channel, user, text, 'message');
+                scrollToBottom();
+            }
+
+            function displayMessageInChat(channel, user, text, type = 'message') {
                 const chatArea = document.getElementById("chat-area");
 
                 const div = document.createElement("div");
-                div.className =
-                    "mb-2 p-3 bg-slate-700 border border-slate-500 rounded-md hover:bg-slate-600 transition-colors";
+                
+                if (type === 'system') {
+                    div.className = "mb-2 p-3 bg-slate-800 border border-slate-600 rounded-md";
+                    
+                    const channelSpan = document.createElement("span");
+                    channelSpan.className = "font-semibold text-amber-400";
+                    channelSpan.textContent = "[system] ";
 
-                const channelSpan = document.createElement("span");
-                channelSpan.className = "font-semibold text-blue-400";
-                channelSpan.textContent = "[" + channel + "] ";
+                    const textSpan = document.createElement("span");
+                    textSpan.className = "text-gray-200";
+                    textSpan.textContent = text;
 
-                const userSpan = document.createElement("span");
-                userSpan.className = "font-semibold text-green-400";
-                userSpan.textContent = user + ": ";
+                    div.appendChild(channelSpan);
+                    div.appendChild(textSpan);
+                } else {
+                    div.className = "mb-2 p-3 bg-slate-700 border border-slate-500 rounded-md hover:bg-slate-600 transition-colors";
 
-                const textSpan = document.createElement("span");
-                textSpan.className = "text-gray-100";
-                textSpan.textContent = text;
+                    const userSpan = document.createElement("span");
+                    userSpan.className = "font-semibold text-green-400";
+                    userSpan.textContent = user + ": ";
 
-                div.appendChild(channelSpan);
-                div.appendChild(userSpan);
-                div.appendChild(textSpan);
+                    const textSpan = document.createElement("span");
+                    textSpan.className = "text-gray-100";
+                    textSpan.textContent = text;
+
+                    div.appendChild(userSpan);
+                    div.appendChild(textSpan);
+                }
+
                 chatArea.appendChild(div);
-
-                scrollToBottom();
             }
 
             function updateCurrentChannelDisplay() {
@@ -435,24 +527,7 @@
 
             function displaySystemMessage(text) {
                 console.log("Displaying system message:", text);
-                const chatArea = document.getElementById("chat-area");
-
-                const div = document.createElement("div");
-                div.className =
-                    "mb-2 p-3 bg-slate-800 border border-slate-600 rounded-md";
-
-                const channelSpan = document.createElement("span");
-                channelSpan.className = "font-semibold text-amber-400";
-                channelSpan.textContent = "[system] ";
-
-                const textSpan = document.createElement("span");
-                textSpan.className = "text-gray-200";
-                textSpan.textContent = text;
-
-                div.appendChild(channelSpan);
-                div.appendChild(textSpan);
-                chatArea.appendChild(div);
-
+                displayMessageInChat("", "system", text, 'system');
                 scrollToBottom();
             }
 
@@ -613,10 +688,10 @@
                     const channel = channelInput.value;
                     console.log("Channel input value:", channel);
                     if (channel) {
-                        currentChannel = channel.startsWith("#")
+                        const channelName = channel.startsWith("#")
                             ? channel
                             : "#" + channel;
-                        console.log("Joining channel:", currentChannel);
+                        console.log("Joining channel:", channelName);
 
                         if (
                             window.ircWebSocket &&
@@ -626,7 +701,7 @@
                             window.ircWebSocket.send(
                                 JSON.stringify({
                                     type: "join",
-                                    channel: currentChannel,
+                                    channel: channelName,
                                 }),
                             );
                         } else {
@@ -636,9 +711,6 @@
                         channelInput.value = "";
                         messageInput.disabled = false;
                         sendBtn.disabled = false;
-                        updateCurrentChannelDisplay();
-                        // Request users list for newly joined channel
-                        requestUsersList();
                     } else {
                         console.log("No channel entered");
                     }
