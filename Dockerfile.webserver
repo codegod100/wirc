@@ -37,9 +37,8 @@ RUN bun install
 
 # Copy static files and build CSS
 COPY static/ ./static/
-COPY tailwind.config.js ./
 
-# Build CSS
+# Build CSS (Tailwind v4 doesn't need config file)
 RUN bun run build-css
 
 # Final stage
