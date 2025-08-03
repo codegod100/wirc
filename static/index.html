@@ -269,10 +269,14 @@
             }
 
             function connectWebSocket() {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const host = window.location.host;
+                const wsUrl = `${protocol}//${host}/ws`;
+                
                 console.log(
-                    "Connecting to WebSocket at ws://localhost:8080/ws...",
+                    `Connecting to WebSocket at ${wsUrl}...`,
                 );
-                const ws = new WebSocket("ws://localhost:8080/ws");
+                const ws = new WebSocket(wsUrl);
                 window.ircWebSocket = ws;
 
                 ws.onopen = function () {
@@ -660,9 +664,9 @@
                                 : "null",
                         );
                         console.log(
-                            "🔗 Trying direct HTTP request to IRC daemon",
+                            "🔗 Trying direct HTTP request to server",
                         );
-                        fetch("http://localhost:8081/state")
+                        fetch(`${window.location.origin}/state`)
                             .then((response) => {
                                 console.log(
                                     "📡 IRC daemon response:",
