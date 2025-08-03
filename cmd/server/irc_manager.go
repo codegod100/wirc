@@ -21,13 +21,6 @@ type IRCManager struct {
 	reconnectCh chan bool
 }
 
-type IRCState struct {
-	Server    string          `json:"server"`
-	Port      string          `json:"port"`
-	Nickname  string          `json:"nickname"`
-	Channels  map[string]bool `json:"channels"`
-	Connected bool            `json:"connected"`
-}
 
 func NewIRCManager() *IRCManager {
 	return &IRCManager{
