@@ -7,7 +7,7 @@
     "build-css": "tailwindcss -i ./static/style.css -o ./static/output.css",
     "watch-css": "tailwindcss -i ./static/style.css -o ./static/output.css -w",
     "build-wasm": "cd frontend && GOOS=js GOARCH=wasm go build -o ../static/main.wasm .",
-    "dev": "bun run build-css && bun run build-wasm && go run cmd/server/main.go"
+    "dev": "bun run build-css && bun run build-wasm && go run cmd/server/*.go"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",

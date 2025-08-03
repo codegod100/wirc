@@ -129,6 +129,8 @@ func handleMessage(msg Message) {
 		appendToChat("system", "Reconnected to existing IRC session")
 	case "state":
 		appendToChat("system", "Restored IRC connection: "+msg.Text)
+	case "status":
+		appendToChat("system", "IRC Status: "+msg.Text)
 	case "channel_joined":
 		appendToChat("system", "Rejoined channel: "+msg.Channel)
 	case "message":

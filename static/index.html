@@ -1,180 +1,631 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIRC - Web IRC Client</title>
-    <link href="output.css" rel="stylesheet">
-</head>
-<body class="bg-slate-900 text-gray-100">
-    <div class="container mx-auto p-4 h-screen flex flex-col">
-        <header class="mb-4">
-            <h1 class="text-3xl font-bold text-center text-blue-400">WIRC - Web IRC Client</h1>
-        </header>
-        
-        <div class="flex-1 flex gap-4">
-            <!-- Connection Panel -->
-            <div class="w-1/4 bg-slate-800 p-4 rounded-lg border border-slate-600">
-                <h2 class="text-xl font-semibold mb-4 text-blue-300">Connection</h2>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1 text-gray-300">Server:</label>
-                        <input type="text" id="server-input" 
-                               placeholder="irc.freenode.net" 
-                               class="w-full p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WIRC - Web IRC Client</title>
+        <link href="output.css" rel="stylesheet" />
+    </head>
+    <body class="bg-slate-900 text-gray-100">
+        <div class="container mx-auto p-4 h-screen flex flex-col">
+            <header class="mb-4">
+                <h1 class="text-3xl font-bold text-center text-blue-400">
+                    WIRC - Web IRC Client
+                </h1>
+            </header>
+
+            <div class="flex-1 flex gap-4">
+                <!-- Connection Panel -->
+                <div
+                    class="w-1/4 bg-slate-800 p-4 rounded-lg border border-slate-600"
+                >
+                    <h2 class="text-xl font-semibold mb-4 text-blue-300">
+                        Connection
+                    </h2>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label
+                                class="block text-sm font-medium mb-1 text-gray-300"
+                                >Server:</label
+                            >
+                            <input
+                                type="text"
+                                id="server-input"
+                                placeholder="irc.freenode.net"
+                                class="w-full p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20"
+                            />
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-sm font-medium mb-1 text-gray-300"
+                                >Port:</label
+                            >
+                            <input
+                                type="number"
+                                id="port-input"
+                                placeholder="6667"
+                                value="6667"
+                                min="1"
+                                max="65535"
+                                class="w-full p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20"
+                            />
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-sm font-medium mb-1 text-gray-300"
+                                >Nickname:</label
+                            >
+                            <input
+                                type="text"
+                                id="nickname-input"
+                                placeholder="your_nick"
+                                class="w-full p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20"
+                            />
+                        </div>
+
+                        <button
+                            id="connect-btn"
+                            class="w-full bg-blue-600 hover:bg-blue-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
+                        >
+                            Connect
+                        </button>
+
+                        <button
+                            id="disconnect-btn"
+                            class="w-full bg-red-600 hover:bg-red-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-red-500/25 hidden"
+                        >
+                            Disconnect
+                        </button>
+
+                        <button
+                            id="status-btn"
+                            class="w-full bg-gray-600 hover:bg-gray-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-gray-500/25"
+                        >
+                            Check Status
+                        </button>
                     </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-1 text-gray-300">Port:</label>
-                        <input type="number" id="port-input" 
-                               placeholder="6667" 
-                               value="6667"
-                               min="1" max="65535"
-                               class="w-full p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20">
+
+                    <div class="mt-6">
+                        <h3 class="text-lg font-medium mb-2 text-blue-300">
+                            Join Channel
+                        </h3>
+                        <div class="flex gap-2">
+                            <input
+                                type="text"
+                                id="channel-input"
+                                placeholder="#general"
+                                class="flex-1 p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20"
+                            />
+                            <button
+                                id="join-btn"
+                                class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-emerald-500/25"
+                            >
+                                Join
+                            </button>
+                        </div>
                     </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-1 text-gray-300">Nickname:</label>
-                        <input type="text" id="nickname-input" 
-                               placeholder="your_nick" 
-                               class="w-full p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20">
-                    </div>
-                    
-                    <button id="connect-btn" 
-                            class="w-full bg-blue-600 hover:bg-blue-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25">
-                        Connect
-                    </button>
-                    
-                    <button id="disconnect-btn" 
-                            class="w-full bg-red-600 hover:bg-red-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-red-500/25 hidden">
-                        Disconnect
-                    </button>
-                    
-                    <button id="status-btn" 
-                            class="w-full bg-gray-600 hover:bg-gray-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-gray-500/25">
-                        Check Status
-                    </button>
                 </div>
-                
-                <div class="mt-6">
-                    <h3 class="text-lg font-medium mb-2 text-blue-300">Join Channel</h3>
+
+                <!-- Chat Area -->
+                <div
+                    class="flex-1 bg-slate-800 p-4 rounded-lg border border-slate-600 flex flex-col"
+                >
+                    <h2 class="text-xl font-semibold mb-4 text-blue-300">
+                        Chat
+                    </h2>
+
+                    <div
+                        id="chat-area"
+                        class="flex-1 bg-slate-900 p-4 rounded border border-slate-600 overflow-y-auto mb-4 space-y-2"
+                    >
+                        <div class="text-gray-400 text-center italic">
+                            Connect to an IRC server to start chatting
+                        </div>
+                    </div>
+
                     <div class="flex gap-2">
-                        <input type="text" id="channel-input" 
-                               placeholder="#general" 
-                               class="flex-1 p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20">
-                        <button id="join-btn" 
-                                class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-emerald-500/25">
-                            Join
+                        <input
+                            type="text"
+                            id="message-input"
+                            placeholder="Type your message..."
+                            class="flex-1 p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20"
+                            disabled
+                        />
+                        <button
+                            id="send-btn"
+                            class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25 disabled:bg-slate-600 disabled:shadow-none disabled:cursor-not-allowed"
+                            disabled
+                        >
+                            Send
                         </button>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Chat Area -->
-            <div class="flex-1 bg-slate-800 p-4 rounded-lg border border-slate-600 flex flex-col">
-                <h2 class="text-xl font-semibold mb-4 text-blue-300">Chat</h2>
-                
-                <div id="chat-area" 
-                     class="flex-1 bg-slate-900 p-4 rounded border border-slate-600 overflow-y-auto mb-4 space-y-2">
-                    <div class="text-gray-400 text-center italic">Connect to an IRC server to start chatting</div>
-                </div>
-                
-                <div class="flex gap-2">
-                    <input type="text" id="message-input" 
-                           placeholder="Type your message..." 
-                           class="flex-1 p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20"
-                           disabled>
-                    <button id="send-btn" 
-                            class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25 disabled:bg-slate-600 disabled:shadow-none disabled:cursor-not-allowed"
-                            disabled>
-                        Send
-                    </button>
+
+                <!-- Users Panel -->
+                <div
+                    class="w-1/4 bg-slate-800 p-4 rounded-lg border border-slate-600"
+                >
+                    <h2 class="text-xl font-semibold mb-4 text-blue-300">
+                        Users
+                    </h2>
+                    <div
+                        id="current-channel-display"
+                        class="mb-2 text-sm text-gray-400"
+                    >
+                        No channel selected
+                    </div>
+                    <div
+                        id="users-list"
+                        class="bg-slate-900 p-3 rounded border border-slate-600 h-96 overflow-y-auto"
+                    >
+                        <div class="text-gray-400 text-sm italic">
+                            Join a channel to see users
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <script src="wasm_exec.js"></script>
-    <script>
-        const go = new Go();
-        let currentChannel = '';
-        
-        // Store WebSocket globally so we can access it from UI buttons
-        window.ircWebSocket = null;
-        
-        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
-            go.run(result.instance);
-            initializeUI();
-        });
-        
-        function initializeUI() {
-            const connectBtn = document.getElementById('connect-btn');
-            const disconnectBtn = document.getElementById('disconnect-btn');
-            const statusBtn = document.getElementById('status-btn');
-            const joinBtn = document.getElementById('join-btn');
-            const sendBtn = document.getElementById('send-btn');
-            const messageInput = document.getElementById('message-input');
-            const channelInput = document.getElementById('channel-input');
-            
-            connectBtn.addEventListener('click', () => {
-                const server = document.getElementById('server-input').value;
-                const port = document.getElementById('port-input').value || '6667';
-                const nickname = document.getElementById('nickname-input').value;
-                
-                if (server && nickname) {
-                    connectToIRC(server, nickname, port);
-                    connectBtn.textContent = 'Connected';
+
+        <script src="wasm_exec.js"></script>
+        <script>
+            const go = new Go();
+            let currentChannel = "";
+
+            // Store WebSocket globally so we can access it from UI buttons
+            window.ircWebSocket = null;
+
+            // Auto-connect WebSocket on page load
+            connectWebSocket();
+
+            WebAssembly.instantiateStreaming(
+                fetch("main.wasm"),
+                go.importObject,
+            ).then((result) => {
+                go.run(result.instance);
+                initializeUI();
+            });
+
+            function connectWebSocket() {
+                console.log("Connecting to WebSocket...");
+                const ws = new WebSocket("ws://localhost:8080/ws");
+                window.ircWebSocket = ws;
+
+                ws.onopen = function () {
+                    console.log("WebSocket connected");
+                    // Check IRC daemon status and update UI
+                    checkIRCStatus();
+                };
+
+                ws.onmessage = function (event) {
+                    console.log("WebSocket message:", event.data);
+                    try {
+                        const msg = JSON.parse(event.data);
+                        if (msg.type === "status") {
+                            console.log("Received status response:", msg.text);
+                            const state = JSON.parse(msg.text);
+                            updateConnectButtonState(
+                                state.connected,
+                                state.server,
+                                state.nickname,
+                            );
+                            // Set current channel if we have channels
+                            if (
+                                state.channels &&
+                                Object.keys(state.channels).length > 0
+                            ) {
+                                currentChannel = Object.keys(state.channels)[0];
+                                console.log(
+                                    "Set current channel to:",
+                                    currentChannel,
+                                );
+                                // Enable message input since we have a channel
+                                const messageInput =
+                                    document.getElementById("message-input");
+                                const sendBtn =
+                                    document.getElementById("send-btn");
+                                messageInput.disabled = false;
+                                sendBtn.disabled = false;
+                                // Update current channel display
+                                updateCurrentChannelDisplay();
+                                // Request users list for the current channel
+                                requestUsersList();
+                            }
+                        } else if (msg.type === "channel_joined") {
+                            // When we join a new channel, set it as current
+                            currentChannel = msg.channel;
+                            console.log(
+                                "Joined channel, set as current:",
+                                currentChannel,
+                            );
+                            updateCurrentChannelDisplay();
+                            // Request users list for newly joined channel
+                            requestUsersList();
+                        } else if (msg.type === "message") {
+                            console.log("Received chat message:", msg);
+                            displayMessage(msg.channel, msg.user, msg.text);
+                        } else if (msg.type === "connected") {
+                            displaySystemMessage("Connected to IRC server");
+                        } else if (msg.type === "disconnected") {
+                            displaySystemMessage("Disconnected from IRC");
+                        } else if (msg.type === "error") {
+                            displaySystemMessage("Error: " + msg.text);
+                        } else if (msg.type === "join") {
+                            displaySystemMessage(
+                                msg.user + " joined " + msg.channel,
+                            );
+                        } else if (msg.type === "users") {
+                            console.log("Received users message:", msg);
+                            displaySystemMessage(
+                                "Users in " + msg.channel + ": " + msg.text,
+                            );
+                            updateUsersList(msg.channel, msg.text);
+                        } else {
+                            console.log(
+                                "Unhandled message type:",
+                                msg.type,
+                                msg,
+                            );
+                        }
+                    } catch (e) {
+                        console.log("Could not parse WebSocket message:", e);
+                    }
+                };
+
+                ws.onerror = function (error) {
+                    console.log("WebSocket error:", error);
+                };
+
+                ws.onclose = function () {
+                    console.log("WebSocket closed");
+                };
+            }
+
+            function checkIRCStatus() {
+                console.log("Checking IRC status on WebSocket connect");
+                if (
+                    window.ircWebSocket &&
+                    window.ircWebSocket.readyState === WebSocket.OPEN
+                ) {
+                    window.ircWebSocket.send(
+                        JSON.stringify({ type: "status" }),
+                    );
+                }
+            }
+
+            function displayMessage(channel, user, text) {
+                console.log("Displaying message:", channel, user, text);
+                const chatArea = document.getElementById("chat-area");
+
+                const div = document.createElement("div");
+                div.className =
+                    "mb-2 p-3 bg-slate-700 border border-slate-500 rounded-md hover:bg-slate-600 transition-colors";
+
+                const channelSpan = document.createElement("span");
+                channelSpan.className = "font-semibold text-blue-400";
+                channelSpan.textContent = "[" + channel + "] ";
+
+                const userSpan = document.createElement("span");
+                userSpan.className = "font-semibold text-green-400";
+                userSpan.textContent = user + ": ";
+
+                const textSpan = document.createElement("span");
+                textSpan.className = "text-gray-100";
+                textSpan.textContent = text;
+
+                div.appendChild(channelSpan);
+                div.appendChild(userSpan);
+                div.appendChild(textSpan);
+                chatArea.appendChild(div);
+
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+
+            function updateCurrentChannelDisplay() {
+                const channelDisplay = document.getElementById(
+                    "current-channel-display",
+                );
+                if (currentChannel) {
+                    channelDisplay.textContent = "Channel: " + currentChannel;
+                    channelDisplay.className = "mb-2 text-sm text-blue-400";
+                } else {
+                    channelDisplay.textContent = "No channel selected";
+                    channelDisplay.className = "mb-2 text-sm text-gray-400";
+                }
+            }
+
+            function requestUsersList() {
+                if (
+                    currentChannel &&
+                    window.ircWebSocket &&
+                    window.ircWebSocket.readyState === WebSocket.OPEN
+                ) {
+                    console.log("Requesting users list for", currentChannel);
+                    // Send NAMES command via WebSocket to get users list
+                    window.ircWebSocket.send(
+                        JSON.stringify({
+                            type: "names",
+                            channel: currentChannel,
+                        }),
+                    );
+                }
+            }
+
+            function updateUsersList(channel, usersText) {
+                console.log("Updating users list for", channel, ":", usersText);
+                const usersList = document.getElementById("users-list");
+
+                // Clear existing users
+                usersList.innerHTML = "";
+
+                if (!currentChannel) {
+                    usersList.innerHTML =
+                        '<div class="text-gray-400 text-sm italic">No channel selected</div>';
+                    return;
+                }
+
+                if (channel !== currentChannel) {
+                    usersList.innerHTML =
+                        '<div class="text-gray-400 text-sm italic">Users for different channel</div>';
+                    return;
+                }
+
+                // Parse users (usually space-separated, may have @ or + prefixes)
+                const users = usersText
+                    .trim()
+                    .split(/\s+/)
+                    .filter((u) => u.length > 0);
+
+                if (users.length === 0) {
+                    usersList.innerHTML =
+                        '<div class="text-gray-400 text-sm italic">No users found</div>';
+                    return;
+                }
+
+                users.forEach((user) => {
+                    const userDiv = document.createElement("div");
+                    userDiv.className =
+                        "text-gray-200 text-sm py-1 px-2 hover:bg-slate-700 rounded";
+                    userDiv.textContent = user;
+                    usersList.appendChild(userDiv);
+                });
+            }
+
+            function displaySystemMessage(text) {
+                console.log("Displaying system message:", text);
+                const chatArea = document.getElementById("chat-area");
+
+                const div = document.createElement("div");
+                div.className =
+                    "mb-2 p-3 bg-slate-800 border border-slate-600 rounded-md";
+
+                const channelSpan = document.createElement("span");
+                channelSpan.className = "font-semibold text-amber-400";
+                channelSpan.textContent = "[system] ";
+
+                const textSpan = document.createElement("span");
+                textSpan.className = "text-gray-200";
+                textSpan.textContent = text;
+
+                div.appendChild(channelSpan);
+                div.appendChild(textSpan);
+                chatArea.appendChild(div);
+
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+
+            function updateConnectButtonState(connected, server, nickname) {
+                const connectBtn = document.getElementById("connect-btn");
+                const disconnectBtn = document.getElementById("disconnect-btn");
+
+                if (connected) {
+                    connectBtn.textContent = "Connected";
                     connectBtn.disabled = true;
-                    connectBtn.className = 'w-full bg-emerald-600 p-2 rounded font-medium cursor-not-allowed shadow-lg';
-                    disconnectBtn.classList.remove('hidden');
+                    connectBtn.className =
+                        "w-full bg-emerald-600 p-2 rounded font-medium cursor-not-allowed shadow-lg";
+                    disconnectBtn.classList.remove("hidden");
+
+                    // Update form fields if we have the info
+                    if (server)
+                        document.getElementById("server-input").value = server;
+                    if (nickname)
+                        document.getElementById("nickname-input").value =
+                            nickname;
+                } else {
+                    connectBtn.textContent = "Connect";
+                    connectBtn.disabled = false;
+                    connectBtn.className =
+                        "w-full bg-blue-600 hover:bg-blue-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25";
+                    disconnectBtn.classList.add("hidden");
                 }
-            });
-            
-            disconnectBtn.addEventListener('click', () => {
-                // Send disconnect message to server
-                if (window.ircWebSocket && window.ircWebSocket.readyState === WebSocket.OPEN) {
-                    window.ircWebSocket.send(JSON.stringify({type: 'disconnect'}));
-                }
-                connectBtn.textContent = 'Connect';
-                connectBtn.disabled = false;
-                connectBtn.className = 'w-full bg-blue-600 hover:bg-blue-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25';
-                disconnectBtn.classList.add('hidden');
-                messageInput.disabled = true;
-                sendBtn.disabled = true;
-            });
-            
-            statusBtn.addEventListener('click', () => {
-                if (window.ircWebSocket && window.ircWebSocket.readyState === WebSocket.OPEN) {
-                    window.ircWebSocket.send(JSON.stringify({type: 'status'}));
-                }
-            });
-            
-            joinBtn.addEventListener('click', () => {
-                const channel = channelInput.value;
-                if (channel) {
-                    currentChannel = channel.startsWith('#') ? channel : '#' + channel;
-                    joinChannel(currentChannel);
-                    channelInput.value = '';
-                    messageInput.disabled = false;
-                    sendBtn.disabled = false;
-                }
-            });
-            
-            sendBtn.addEventListener('click', () => {
-                const message = messageInput.value;
-                if (message && currentChannel) {
-                    sendMessage(currentChannel, message);
-                    messageInput.value = '';
-                }
-            });
-            
-            messageInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && !sendBtn.disabled) {
-                    sendBtn.click();
-                }
-            });
-        }
-    </script>
-</body>
+            }
+
+            function initializeUI() {
+                const connectBtn = document.getElementById("connect-btn");
+                const disconnectBtn = document.getElementById("disconnect-btn");
+                const statusBtn = document.getElementById("status-btn");
+                const joinBtn = document.getElementById("join-btn");
+                const sendBtn = document.getElementById("send-btn");
+                const messageInput = document.getElementById("message-input");
+                const channelInput = document.getElementById("channel-input");
+
+                connectBtn.addEventListener("click", () => {
+                    console.log("Connect button clicked");
+                    const server =
+                        document.getElementById("server-input").value;
+                    const port =
+                        document.getElementById("port-input").value || "6667";
+                    const nickname =
+                        document.getElementById("nickname-input").value;
+
+                    if (server && nickname) {
+                        if (
+                            window.ircWebSocket &&
+                            window.ircWebSocket.readyState === WebSocket.OPEN
+                        ) {
+                            console.log("Sending IRC connect message");
+                            window.ircWebSocket.send(
+                                JSON.stringify({
+                                    type: "connect",
+                                    server: server,
+                                    port: port,
+                                    nick: nickname,
+                                }),
+                            );
+                            connectBtn.textContent = "Connected";
+                            connectBtn.disabled = true;
+                            connectBtn.className =
+                                "w-full bg-emerald-600 p-2 rounded font-medium cursor-not-allowed shadow-lg";
+                            disconnectBtn.classList.remove("hidden");
+                        } else {
+                            console.log(
+                                "WebSocket not available for IRC connect",
+                            );
+                        }
+                    } else {
+                        console.log("Missing server or nickname");
+                    }
+                });
+
+                disconnectBtn.addEventListener("click", () => {
+                    // Send disconnect message to server
+                    if (
+                        window.ircWebSocket &&
+                        window.ircWebSocket.readyState === WebSocket.OPEN
+                    ) {
+                        window.ircWebSocket.send(
+                            JSON.stringify({ type: "disconnect" }),
+                        );
+                    }
+                    connectBtn.textContent = "Connect";
+                    connectBtn.disabled = false;
+                    connectBtn.className =
+                        "w-full bg-blue-600 hover:bg-blue-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25";
+                    disconnectBtn.classList.add("hidden");
+                    messageInput.disabled = true;
+                    sendBtn.disabled = true;
+                });
+
+                statusBtn.addEventListener("click", () => {
+                    console.log("Status button clicked");
+                    if (
+                        window.ircWebSocket &&
+                        window.ircWebSocket.readyState === WebSocket.OPEN
+                    ) {
+                        console.log("Sending status message via WebSocket");
+                        window.ircWebSocket.send(
+                            JSON.stringify({ type: "status" }),
+                        );
+                    } else {
+                        console.log(
+                            "WebSocket not available or not open. State:",
+                            window.ircWebSocket
+                                ? window.ircWebSocket.readyState
+                                : "null",
+                        );
+                        console.log("Trying direct HTTP request to IRC daemon");
+                        fetch("http://localhost:8081/state")
+                            .then((response) => {
+                                console.log(
+                                    "IRC daemon response:",
+                                    response.status,
+                                );
+                                return response.json();
+                            })
+                            .then((data) => {
+                                console.log("IRC daemon state:", data);
+                            })
+                            .catch((error) => {
+                                console.log("IRC daemon not reachable:", error);
+                            });
+                    }
+                });
+
+                joinBtn.addEventListener("click", () => {
+                    console.log("Join button clicked");
+                    const channel = channelInput.value;
+                    console.log("Channel input value:", channel);
+                    if (channel) {
+                        currentChannel = channel.startsWith("#")
+                            ? channel
+                            : "#" + channel;
+                        console.log("Joining channel:", currentChannel);
+
+                        if (
+                            window.ircWebSocket &&
+                            window.ircWebSocket.readyState === WebSocket.OPEN
+                        ) {
+                            console.log("Sending join message via WebSocket");
+                            window.ircWebSocket.send(
+                                JSON.stringify({
+                                    type: "join",
+                                    channel: currentChannel,
+                                }),
+                            );
+                        } else {
+                            console.log("WebSocket not available for join");
+                        }
+
+                        channelInput.value = "";
+                        messageInput.disabled = false;
+                        sendBtn.disabled = false;
+                        updateCurrentChannelDisplay();
+                        // Request users list for newly joined channel
+                        requestUsersList();
+                    } else {
+                        console.log("No channel entered");
+                    }
+                });
+
+                sendBtn.addEventListener("click", () => {
+                    console.log("Send button clicked");
+                    const message = messageInput.value;
+                    console.log("Message input value:", message);
+                    console.log("Current channel:", currentChannel);
+                    if (message && currentChannel) {
+                        console.log(
+                            "Sending message:",
+                            message,
+                            "to channel:",
+                            currentChannel,
+                        );
+
+                        if (
+                            window.ircWebSocket &&
+                            window.ircWebSocket.readyState === WebSocket.OPEN
+                        ) {
+                            console.log("Sending message via WebSocket");
+                            window.ircWebSocket.send(
+                                JSON.stringify({
+                                    type: "message",
+                                    channel: currentChannel,
+                                    text: message,
+                                }),
+                            );
+                        } else {
+                            console.log(
+                                "WebSocket not available for sending message",
+                            );
+                        }
+
+                        messageInput.value = "";
+                    } else {
+                        if (!message) console.log("No message entered");
+                        if (!currentChannel)
+                            console.log("No current channel set");
+                    }
+                });
+
+                messageInput.addEventListener("keypress", (e) => {
+                    console.log("Key pressed in message input:", e.key);
+                    if (e.key === "Enter" && !sendBtn.disabled) {
+                        console.log("Enter pressed, triggering send button");
+                        sendBtn.click();
+                    }
+                });
+            }
+        </script>
+    </body>
 </html>

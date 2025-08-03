@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  ircd:
+    build:
+      context: .
+      dockerfile: Dockerfile.ircd
+    # To use GHCR image instead, uncomment the next line and comment the build section
+    # image: ghcr.io/yourusername/yourrepo/ircd:latest
+    container_name: wirc-ircd
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8081/state",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    environment:
+      - PORT=8081
+    networks:
+      - wirc-network
+
+  webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.webserver
+    # To use GHCR image instead, uncomment the next line and comment the build section
+    # image: ghcr.io/yourusername/yourrepo/webserver:latest
+    container_name: wirc-webserver
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    environment:
+      - PORT=8080
+      - IRC_DAEMON_URL=http://ircd:8081
+    depends_on:
+      - ircd
+    networks:
+      - wirc-network
+
+networks:
+  wirc-network:
+    driver: bridge
