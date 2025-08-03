@@ -1,0 +1,20 @@
+{
+  "name": "wirc",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build-css": "tailwindcss -i ./static/style.css -o ./static/output.css",
+    "watch-css": "tailwindcss -i ./static/style.css -o ./static/output.css -w",
+    "build-wasm": "cd frontend && GOOS=js GOARCH=wasm go build -o ../static/main.wasm .",
+    "dev": "bun run build-css && bun run build-wasm && go run cmd/server/main.go"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/bun": "latest",
+    "tailwindcss": "^4.1.11"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

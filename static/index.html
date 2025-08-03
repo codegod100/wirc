@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WIRC - Web IRC Client</title>
+    <link href="output.css" rel="stylesheet">
+</head>
+<body class="bg-slate-900 text-gray-100">
+    <div class="container mx-auto p-4 h-screen flex flex-col">
+        <header class="mb-4">
+            <h1 class="text-3xl font-bold text-center text-blue-400">WIRC - Web IRC Client</h1>
+        </header>
+        
+        <div class="flex-1 flex gap-4">
+            <!-- Connection Panel -->
+            <div class="w-1/4 bg-slate-800 p-4 rounded-lg border border-slate-600">
+                <h2 class="text-xl font-semibold mb-4 text-blue-300">Connection</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-gray-300">Server:</label>
+                        <input type="text" id="server-input" 
+                               placeholder="irc.freenode.net" 
+                               class="w-full p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-gray-300">Port:</label>
+                        <input type="number" id="port-input" 
+                               placeholder="6667" 
+                               value="6667"
+                               min="1" max="65535"
+                               class="w-full p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-gray-300">Nickname:</label>
+                        <input type="text" id="nickname-input" 
+                               placeholder="your_nick" 
+                               class="w-full p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20">
+                    </div>
+                    
+                    <button id="connect-btn" 
+                            class="w-full bg-blue-600 hover:bg-blue-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25">
+                        Connect
+                    </button>
+                    
+                    <button id="disconnect-btn" 
+                            class="w-full bg-red-600 hover:bg-red-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-red-500/25 hidden">
+                        Disconnect
+                    </button>
+                    
+                    <button id="status-btn" 
+                            class="w-full bg-gray-600 hover:bg-gray-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-gray-500/25">
+                        Check Status
+                    </button>
+                </div>
+                
+                <div class="mt-6">
+                    <h3 class="text-lg font-medium mb-2 text-blue-300">Join Channel</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="channel-input" 
+                               placeholder="#general" 
+                               class="flex-1 p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20">
+                        <button id="join-btn" 
+                                class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-emerald-500/25">
+                            Join
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Area -->
+            <div class="flex-1 bg-slate-800 p-4 rounded-lg border border-slate-600 flex flex-col">
+                <h2 class="text-xl font-semibold mb-4 text-blue-300">Chat</h2>
+                
+                <div id="chat-area" 
+                     class="flex-1 bg-slate-900 p-4 rounded border border-slate-600 overflow-y-auto mb-4 space-y-2">
+                    <div class="text-gray-400 text-center italic">Connect to an IRC server to start chatting</div>
+                </div>
+                
+                <div class="flex gap-2">
+                    <input type="text" id="message-input" 
+                           placeholder="Type your message..." 
+                           class="flex-1 p-2 rounded bg-slate-700 border border-slate-500 text-gray-100 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20"
+                           disabled>
+                    <button id="send-btn" 
+                            class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25 disabled:bg-slate-600 disabled:shadow-none disabled:cursor-not-allowed"
+                            disabled>
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="wasm_exec.js"></script>
+    <script>
+        const go = new Go();
+        let currentChannel = '';
+        
+        // Store WebSocket globally so we can access it from UI buttons
+        window.ircWebSocket = null;
+        
+        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+            go.run(result.instance);
+            initializeUI();
+        });
+        
+        function initializeUI() {
+            const connectBtn = document.getElementById('connect-btn');
+            const disconnectBtn = document.getElementById('disconnect-btn');
+            const statusBtn = document.getElementById('status-btn');
+            const joinBtn = document.getElementById('join-btn');
+            const sendBtn = document.getElementById('send-btn');
+            const messageInput = document.getElementById('message-input');
+            const channelInput = document.getElementById('channel-input');
+            
+            connectBtn.addEventListener('click', () => {
+                const server = document.getElementById('server-input').value;
+                const port = document.getElementById('port-input').value || '6667';
+                const nickname = document.getElementById('nickname-input').value;
+                
+                if (server && nickname) {
+                    connectToIRC(server, nickname, port);
+                    connectBtn.textContent = 'Connected';
+                    connectBtn.disabled = true;
+                    connectBtn.className = 'w-full bg-emerald-600 p-2 rounded font-medium cursor-not-allowed shadow-lg';
+                    disconnectBtn.classList.remove('hidden');
+                }
+            });
+            
+            disconnectBtn.addEventListener('click', () => {
+                // Send disconnect message to server
+                if (window.ircWebSocket && window.ircWebSocket.readyState === WebSocket.OPEN) {
+                    window.ircWebSocket.send(JSON.stringify({type: 'disconnect'}));
+                }
+                connectBtn.textContent = 'Connect';
+                connectBtn.disabled = false;
+                connectBtn.className = 'w-full bg-blue-600 hover:bg-blue-500 p-2 rounded font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25';
+                disconnectBtn.classList.add('hidden');
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+            });
+            
+            statusBtn.addEventListener('click', () => {
+                if (window.ircWebSocket && window.ircWebSocket.readyState === WebSocket.OPEN) {
+                    window.ircWebSocket.send(JSON.stringify({type: 'status'}));
+                }
+            });
+            
+            joinBtn.addEventListener('click', () => {
+                const channel = channelInput.value;
+                if (channel) {
+                    currentChannel = channel.startsWith('#') ? channel : '#' + channel;
+                    joinChannel(currentChannel);
+                    channelInput.value = '';
+                    messageInput.disabled = false;
+                    sendBtn.disabled = false;
+                }
+            });
+            
+            sendBtn.addEventListener('click', () => {
+                const message = messageInput.value;
+                if (message && currentChannel) {
+                    sendMessage(currentChannel, message);
+                    messageInput.value = '';
+                }
+            });
+            
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !sendBtn.disabled) {
+                    sendBtn.click();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
