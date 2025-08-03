@@ -183,9 +183,7 @@
             </div>
         </div>
 
-        <script src="wasm_exec.js"></script>
         <script>
-            const go = new Go();
             let currentChannel = "";
             let joinedChannels = new Set();
             let channelHistory = {};
@@ -196,13 +194,8 @@
             // Auto-connect WebSocket on page load
             connectWebSocket();
 
-            WebAssembly.instantiateStreaming(
-                fetch("main.wasm"),
-                go.importObject,
-            ).then((result) => {
-                go.run(result.instance);
-                initializeUI();
-            });
+            // Initialize UI when page loads
+            initializeUI();
 
             function scrollToBottom() {
                 const chatArea = document.getElementById("chat-area");
@@ -273,23 +266,25 @@
                 const host = window.location.host;
                 const wsUrl = `${protocol}//${host}/ws`;
                 
-                console.log(
-                    `Connecting to WebSocket at ${wsUrl}...`,
-                );
-                const ws = new WebSocket(wsUrl);
-                window.ircWebSocket = ws;
+                console.log(`🔌 Attempting WebSocket connection to: ${wsUrl}`);
+                console.log(`📍 Current location - protocol: ${window.location.protocol}, host: ${window.location.host}`);
+                
+                try {
+                    const ws = new WebSocket(wsUrl);
+                    window.ircWebSocket = ws;
 
-                ws.onopen = function () {
-                    console.log("✅ WebSocket connected successfully");
-                    // Check IRC daemon status and update UI
-                    checkIRCStatus();
-                };
+                    ws.onopen = function () {
+                        console.log("✅ WebSocket connected successfully");
+                        console.log("📊 WebSocket readyState:", ws.readyState);
+                        // Check IRC daemon status and update UI
+                        checkIRCStatus();
+                    };
 
-                ws.onmessage = function (event) {
-                    console.log("📨 WebSocket message received:", event.data);
-                    try {
-                        const msg = JSON.parse(event.data);
-                        console.log("📋 Parsed message:", msg);
+                    ws.onmessage = function (event) {
+                        console.log("📨 WebSocket message received:", event.data);
+                        try {
+                            const msg = JSON.parse(event.data);
+                            console.log("📋 Parsed message:", msg);
                         if (msg.type === "status") {
                             console.log("Received status response:", msg.text);
                             const state = JSON.parse(msg.text);
@@ -372,21 +367,27 @@
                     }
                 };
 
-                ws.onerror = function (error) {
-                    console.log("❌ WebSocket error:", error);
-                    console.log("WebSocket readyState:", ws.readyState);
-                };
+                    ws.onerror = function (error) {
+                        console.error("❌ WebSocket error:", error);
+                        console.log("📊 WebSocket readyState:", ws.readyState);
+                        console.log("🔗 WebSocket URL that failed:", wsUrl);
+                    };
 
-                ws.onclose = function (event) {
-                    console.log(
-                        "🔌 WebSocket closed. Code:",
-                        event.code,
-                        "Reason:",
-                        event.reason,
-                    );
-                    console.log("WebSocket readyState:", ws.readyState);
-                    window.ircWebSocket = null;
-                };
+                    ws.onclose = function (event) {
+                        console.log(
+                            "🔌 WebSocket closed. Code:",
+                            event.code,
+                            "Reason:",
+                            event.reason,
+                        );
+                        console.log("📊 WebSocket readyState:", ws.readyState);
+                        console.log("🔗 Was clean:", event.wasClean);
+                        window.ircWebSocket = null;
+                    };
+                } catch (error) {
+                    console.error("💥 Failed to create WebSocket:", error);
+                    console.log("🔗 URL that failed:", wsUrl);
+                }
             }
 
             function checkIRCStatus() {
@@ -570,7 +571,7 @@
                 const channelInput = document.getElementById("channel-input");
 
                 connectBtn.addEventListener("click", () => {
-                    console.log("Connect button clicked");
+                    console.log("🔘 Connect button clicked");
                     const server =
                         document.getElementById("server-input").value;
                     const port =
@@ -578,32 +579,40 @@
                     const nickname =
                         document.getElementById("nickname-input").value;
 
+                    console.log("📝 Form values - server:", server, "port:", port, "nickname:", nickname);
+                    console.log("🌐 WebSocket exists:", !!window.ircWebSocket);
+                    if (window.ircWebSocket) {
+                        console.log("📊 WebSocket readyState:", window.ircWebSocket.readyState);
+                        console.log("🔗 WebSocket.OPEN constant:", WebSocket.OPEN);
+                    }
+
                     if (server && nickname) {
                         if (
                             window.ircWebSocket &&
                             window.ircWebSocket.readyState === WebSocket.OPEN
                         ) {
-                            console.log("Sending IRC connect message");
-                            window.ircWebSocket.send(
-                                JSON.stringify({
-                                    type: "connect",
-                                    server: server,
-                                    port: port,
-                                    nick: nickname,
-                                }),
-                            );
+                            console.log("✅ Sending IRC connect message via WebSocket");
+                            const message = {
+                                type: "connect",
+                                server: server,
+                                port: port,
+                                nick: nickname,
+                            };
+                            console.log("📤 Message to send:", message);
+                            window.ircWebSocket.send(JSON.stringify(message));
                             connectBtn.textContent = "Connected";
                             connectBtn.disabled = true;
                             connectBtn.className =
                                 "w-full bg-emerald-600 p-2 rounded font-medium cursor-not-allowed shadow-lg";
                             disconnectBtn.classList.remove("hidden");
                         } else {
-                            console.log(
-                                "WebSocket not available for IRC connect",
-                            );
+                            console.error("❌ WebSocket not available for IRC connect");
+                            console.log("📊 WebSocket state:", window.ircWebSocket ? window.ircWebSocket.readyState : "null");
                         }
                     } else {
-                        console.log("Missing server or nickname");
+                        console.error("❌ Missing required fields - server or nickname");
+                        if (!server) console.log("🚫 Server field is empty");
+                        if (!nickname) console.log("🚫 Nickname field is empty");
                     }
                 });
 
@@ -628,60 +637,40 @@
 
                 statusBtn.addEventListener("click", () => {
                     console.log("🔘 Status button clicked");
-                    console.log(
-                        "WebSocket object exists:",
-                        !!window.ircWebSocket,
-                    );
+                    console.log("🌐 WebSocket object exists:", !!window.ircWebSocket);
+                    
                     if (window.ircWebSocket) {
-                        console.log(
-                            "WebSocket readyState:",
-                            window.ircWebSocket.readyState,
-                        );
-                        console.log(
-                            "WebSocket states - CONNECTING:",
-                            WebSocket.CONNECTING,
-                            "OPEN:",
-                            WebSocket.OPEN,
-                            "CLOSING:",
-                            WebSocket.CLOSING,
-                            "CLOSED:",
-                            WebSocket.CLOSED,
-                        );
+                        console.log("📊 WebSocket readyState:", window.ircWebSocket.readyState);
+                        console.log("🔗 WebSocket states - CONNECTING:", WebSocket.CONNECTING, "OPEN:", WebSocket.OPEN, "CLOSING:", WebSocket.CLOSING, "CLOSED:", WebSocket.CLOSED);
                     }
-                    if (
-                        window.ircWebSocket &&
-                        window.ircWebSocket.readyState === WebSocket.OPEN
-                    ) {
+                    
+                    if (window.ircWebSocket && window.ircWebSocket.readyState === WebSocket.OPEN) {
                         console.log("✅ Sending status message via WebSocket");
-                        window.ircWebSocket.send(
-                            JSON.stringify({ type: "status" }),
-                        );
+                        const statusMessage = { type: "status" };
+                        console.log("📤 Status message:", statusMessage);
+                        window.ircWebSocket.send(JSON.stringify(statusMessage));
                     } else {
-                        console.log(
-                            "❌ WebSocket not available or not open. State:",
-                            window.ircWebSocket
-                                ? window.ircWebSocket.readyState
-                                : "null",
-                        );
-                        console.log(
-                            "🔗 Trying direct HTTP request to server",
-                        );
-                        fetch(`${window.location.origin}/state`)
+                        console.error("❌ WebSocket not available or not open");
+                        console.log("📊 WebSocket state:", window.ircWebSocket ? window.ircWebSocket.readyState : "WebSocket is null");
+                        console.log("🔗 Attempting direct HTTP request to server");
+                        
+                        const statusUrl = `${window.location.origin}/state`;
+                        console.log("📡 HTTP request URL:", statusUrl);
+                        
+                        fetch(statusUrl)
                             .then((response) => {
-                                console.log(
-                                    "📡 IRC daemon response:",
-                                    response.status,
-                                );
+                                console.log("📡 HTTP response status:", response.status);
+                                console.log("📡 HTTP response OK:", response.ok);
+                                if (!response.ok) {
+                                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                                }
                                 return response.json();
                             })
                             .then((data) => {
-                                console.log("📊 IRC daemon state:", data);
+                                console.log("📊 Server state data:", data);
                             })
                             .catch((error) => {
-                                console.log(
-                                    "💥 IRC daemon not reachable:",
-                                    error,
-                                );
+                                console.error("💥 HTTP request failed:", error);
                             });
                     }
                 });
